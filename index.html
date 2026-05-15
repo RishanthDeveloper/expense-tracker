@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker | Financial Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Dynamic Visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-wallet"></i>
+                <h2>FinTrack</h2>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="active"><i class="fa-solid fa-chart-line"></i> Overview</li>
+                    <li><i class="fa-solid fa-money-bill-transfer"></i> Transactions</li>
+                    <li><i class="fa-solid fa-bullseye"></i> Budgets</li>
+                    <li><i class="fa-solid fa-gear"></i> Settings</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>Financial Overview</h1>
+                <div class="user-profile">
+                    <span>Welcome, User</span>
+                    <div class="avatar"><i class="fa-solid fa-user"></i></div>
+                </div>
+            </header>
+
+            <div class="content-grid">
+                <!-- Summary Cards -->
+                <div class="summary-section">
+                    <div class="summary-card balance">
+                        <h3>Total Balance</h3>
+                        <h2 id="total-balance">$0.00</h2>
+                    </div>
+                    <div class="summary-card income">
+                        <h3><i class="fa-solid fa-arrow-trend-up"></i> Total Income</h3>
+                        <h2 id="total-income">$0.00</h2>
+                    </div>
+                    <div class="summary-card expense">
+                        <h3><i class="fa-solid fa-arrow-trend-down"></i> Total Expense</h3>
+                        <h2 id="total-expense">$0.00</h2>
+                    </div>
+                </div>
+
+                <!-- Charts and Forms Area -->
+                <div class="middle-section">
+                    <!-- Dynamic Chart Container -->
+                    <div class="chart-container card">
+                        <h3>Expense Categorization</h3>
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+
+                    <!-- Add Transaction Form -->
+                    <div class="form-container card">
+                        <h3>Add New Transaction</h3>
+                        <form id="transaction-form">
+                            <div class="form-control">
+                                <label for="text">Description</label>
+                                <input type="text" id="text" placeholder="e.g., Groceries, Salary..." required>
+                            </div>
+                            <div class="form-control">
+                                <label for="amount">Amount (Negative - expense, Positive + income)</label>
+                                <input type="number" id="amount" placeholder="e.g., -150 or 3000" required>
+                            </div>
+                            <div class="form-control">
+                                <label for="category">Category</label>
+                                <select id="category" required>
+                                    <option value="Income">Income</option>
+                                    <option value="Food & Dining">Food & Dining</option>
+                                    <option value="Transportation">Transportation</option>
+                                    <option value="Utilities">Utilities</option>
+                                    <option value="Entertainment">Entertainment</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <button class="btn">Add Transaction</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="transactions-section card">
+                    <h3>Recent Transactions</h3>
+                    <ul id="list" class="list">
+                        <!-- Transactions added dynamically via JS -->
+                    </ul>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
