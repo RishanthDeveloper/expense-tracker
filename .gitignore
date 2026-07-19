@@ -1,0 +1,10 @@
+# Root gitignore
+node_modules/
+node_portable/
+frontend-mockup/
+.env
+.env.*
+!.env.example
+*.log
+dist/
+.DS_Store
