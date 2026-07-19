@@ -1,5 +1,5 @@
 import React, { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { Loader } from './components/common/Loader';
@@ -34,7 +34,7 @@ export const App: React.FC = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <Router>
           <Suspense fallback={<Loader fullScreen label="Loading Expense Tracker AI..." />}>
             <Routes>
               {/* Public Landing Page */}
@@ -67,7 +67,7 @@ export const App: React.FC = () => {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
-        </BrowserRouter>
+        </Router>
       </QueryClientProvider>
     </ErrorBoundary>
   );
