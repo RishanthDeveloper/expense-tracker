@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Sparkles, ArrowRight, Play, TrendingUp, ShieldCheck, Zap, PieChart } from 'lucide-react';
 
 export const Hero: React.FC = () => {
@@ -33,15 +34,21 @@ export const Hero: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
-            <button className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-glow flex items-center justify-center space-x-3 transition-all duration-200 hover:scale-[1.02]">
+            <Link
+              to="/register"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-base shadow-glow flex items-center justify-center space-x-3 transition-all duration-200 hover:scale-[1.02]"
+            >
               <span>Get Started Free</span>
               <ArrowRight className="w-5 h-5" />
-            </button>
+            </Link>
 
-            <button className="w-full sm:w-auto px-8 py-4 rounded-xl glass-card text-[var(--text-main)] font-semibold text-base flex items-center justify-center space-x-3 hover:border-emerald-500/50 transition-all duration-200">
+            <Link
+              to="/login"
+              className="w-full sm:w-auto px-8 py-4 rounded-xl glass-card text-[var(--text-main)] font-semibold text-base flex items-center justify-center space-x-3 hover:border-emerald-500/50 transition-all duration-200"
+            >
               <Play className="w-4 h-4 fill-current text-emerald-400" />
               <span>Watch Live Demo</span>
-            </button>
+            </Link>
           </div>
 
           {/* Social Proof highlights */}

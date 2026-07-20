@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Sun, Moon, Menu, X, Sparkles, ArrowRight } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 
@@ -12,14 +13,14 @@ export const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-20">
           
           {/* Logo */}
-          <div className="flex items-center space-x-3 cursor-pointer">
+          <Link to="/" className="flex items-center space-x-3 cursor-pointer">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-indigo-600 flex items-center justify-center shadow-glow">
               <Sparkles className="w-5 h-5 text-white animate-pulse" />
             </div>
             <span className="text-xl font-bold tracking-tight text-[var(--text-main)]">
               ExpenseTracker<span className="text-emerald-500">.AI</span>
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-8">
@@ -53,13 +54,19 @@ export const Navbar: React.FC = () => {
             </button>
 
             {/* Auth CTAs */}
-            <button className="px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:text-emerald-500 transition-colors">
+            <Link
+              to="/login"
+              className="px-4 py-2 text-sm font-medium text-[var(--text-main)] hover:text-emerald-500 transition-colors"
+            >
               Sign In
-            </button>
-            <button className="group px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium text-sm shadow-glow flex items-center space-x-2 transition-all duration-200">
+            </Link>
+            <Link
+              to="/register"
+              className="group px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white font-medium text-sm shadow-glow flex items-center space-x-2 transition-all duration-200"
+            >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -113,12 +120,20 @@ export const Navbar: React.FC = () => {
             Pricing
           </a>
           <div className="pt-4 border-t border-[var(--border)] flex flex-col space-y-3">
-            <button className="w-full py-2.5 text-center text-sm font-medium text-[var(--text-main)] bg-[var(--surface-card)] rounded-xl border border-[var(--border)]">
+            <Link
+              to="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full py-2.5 text-center text-sm font-medium text-[var(--text-main)] bg-[var(--surface-card)] rounded-xl border border-[var(--border)]"
+            >
               Sign In
-            </button>
-            <button className="w-full py-2.5 text-center text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl shadow-glow">
+            </Link>
+            <Link
+              to="/register"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full py-2.5 text-center text-sm font-medium text-white bg-emerald-500 hover:bg-emerald-600 rounded-xl shadow-glow"
+            >
               Get Started Free
-            </button>
+            </Link>
           </div>
         </div>
       )}
