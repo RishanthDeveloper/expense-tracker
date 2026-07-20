@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:sqlite:expense_tracker.db
+    url: ${DATABASE_URL:jdbc:sqlite:expense_tracker.db}
     driver-class-name: org.sqlite.JDBC
     hikari:
       maximum-pool-size: 1
@@ -14,4 +14,18 @@ spring:
         format_sql: true
 
 server:
-  port: 8080
+  port: ${PORT:8080}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dGhpcyBpcyBhIHZlcnkgbG9uZyBhbmQgc2VjdXJlIHNlY3JldCBrZXkgZm9yIEpXVCBzaWduaW5n}
+    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+  gemini:
+    api-key: ${GEMINI_API_KEY:}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
