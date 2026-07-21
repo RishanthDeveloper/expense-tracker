@@ -51,7 +51,7 @@ export const DashboardLayout: React.FC = () => {
     { label: 'Settings', path: '/dashboard/settings', icon: <Settings className="w-5 h-5" /> },
   ];
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User Account';
+  const userName = user?.fullName || user?.email?.split('@')[0] || 'User Account';
   const userEmail = user?.email || 'user@example.com';
   const userInitials = userName.substring(0, 2).toUpperCase();
 

@@ -28,7 +28,7 @@ export const DashboardPage: React.FC = () => {
     transactionType: 'all',
   });
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Finance Master';
+  const userName = user?.fullName || user?.email?.split('@')[0] || 'Finance Master';
   const todayDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',

@@ -2,132 +2,90 @@ package com.expensetracker.service;
 
 import com.expensetracker.dto.CategoryBreakdown;
 import com.expensetracker.dto.DashboardSummary;
-import com.expensetracker.model.Budget;
-import com.expensetracker.model.Category;
+import com.expensetracker.model.Expense;
+import com.expensetracker.model.Income;
 import com.expensetracker.repository.BudgetRepository;
 import com.expensetracker.repository.ExpenseRepository;
+import com.expensetracker.repository.IncomeRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class AnalyticsService {
 
+    private final IncomeRepository incomeRepository;
     private final ExpenseRepository expenseRepository;
     private final BudgetRepository budgetRepository;
 
-    public AnalyticsService(ExpenseRepository expenseRepository, BudgetRepository budgetRepository) {
-        this.expenseRepository = expenseRepository;
-        this.budgetRepository = budgetRepository;
+    @Transactional(readOnly = true)
+    public DashboardSummary getDashboardSummary(String userId) {
+        List<Income> incomes = incomeRepository.findByUserIdOrderByTransactionDateDesc(userId);
+        List<Expense> expenses = expenseRepository.findByUserIdOrderByTransactionDateDesc(userId);
+
+        BigDecimal totalIncome = incomes.stream()
+                .map(Income::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalExpenses = expenses.stream()
+                .map(Expense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalSavings = totalIncome.subtract(totalExpenses);
+        BigDecimal totalBalance = totalSavings;
+
+        return DashboardSummary.builder()
+                .totalBalance(totalBalance)
+                .totalIncome(totalIncome)
+                .totalExpenses(totalExpenses)
+                .totalSavings(totalSavings)
+                .build();
     }
 
-    public DashboardSummary getDashboardSummary() {
-        YearMonth currentMonth = YearMonth.now();
-        LocalDate start = currentMonth.atDay(1);
-        LocalDate end = currentMonth.atEndOfMonth();
+    @Transactional(readOnly = true)
+    public List<CategoryBreakdown> getCategoryBreakdown(String userId) {
+        List<Expense> expenses = expenseRepository.findByUserIdOrderByTransactionDateDesc(userId);
 
-        Double totalSpent = expenseRepository.sumAmountByDateBetween(start, end);
-        long transactionCount = expenseRepository.countByDateBetween(start, end);
+        BigDecimal totalExpenses = expenses.stream()
+                .map(Expense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Calculate total budget
-        double totalBudget = budgetRepository.findAll().stream()
-                .mapToDouble(Budget::getMonthlyLimit)
-                .sum();
-        double budgetRemaining = totalBudget - totalSpent;
-
-        // Average per day (days elapsed in the month so far)
-        int daysElapsed = Math.max(1, LocalDate.now().getDayOfMonth());
-        double avgPerDay = Math.round((totalSpent / daysElapsed) * 100.0) / 100.0;
-
-        // Top category
-        List<Object[]> breakdown = expenseRepository.getCategoryBreakdown(start, end);
-        String topCategory = null;
-        Double topCategoryAmount = 0.0;
-
-        for (Object[] row : breakdown) {
-            Category cat = (Category) row[0];
-            Double amount = (Double) row[1];
-            if (amount > topCategoryAmount) {
-                topCategory = cat.getDisplayName();
-                topCategoryAmount = amount;
-            }
+        if (totalExpenses.compareTo(BigDecimal.ZERO) == 0) {
+            return Collections.emptyList();
         }
 
-        return new DashboardSummary(
-                Math.round(totalSpent * 100.0) / 100.0,
-                Math.round(totalBudget * 100.0) / 100.0,
-                Math.round(budgetRemaining * 100.0) / 100.0,
-                transactionCount,
-                avgPerDay,
-                topCategory,
-                Math.round(topCategoryAmount * 100.0) / 100.0
-        );
-    }
+        Map<String, BigDecimal> categoryTotals = new HashMap<>();
+        Map<String, String> categoryColors = new HashMap<>();
 
-    public List<CategoryBreakdown> getCategoryBreakdown() {
-        YearMonth currentMonth = YearMonth.now();
-        LocalDate start = currentMonth.atDay(1);
-        LocalDate end = currentMonth.atEndOfMonth();
+        for (Expense expense : expenses) {
+            String name = expense.getCategory() != null ? expense.getCategory().getName() : "Uncategorized";
+            String color = expense.getCategory() != null ? expense.getCategory().getColor() : "#64748b";
 
-        List<Object[]> breakdownData = expenseRepository.getCategoryBreakdown(start, end);
-        Double totalSpent = expenseRepository.sumAmountByDateBetween(start, end);
+            categoryTotals.put(name, categoryTotals.getOrDefault(name, BigDecimal.ZERO).add(expense.getAmount()));
+            categoryColors.put(name, color);
+        }
 
-        return breakdownData.stream()
-                .map(row -> {
-                    Category cat = (Category) row[0];
-                    Double spent = (Double) row[1];
-                    Double budgetLimit = budgetRepository.findByCategory(cat)
-                            .map(Budget::getMonthlyLimit)
-                            .orElse(0.0);
-                    double percentage = totalSpent > 0
-                            ? Math.round((spent / totalSpent) * 10000.0) / 100.0
-                            : 0.0;
-                    return new CategoryBreakdown(
-                            cat.name(),
-                            cat.getDisplayName(),
-                            cat.getIcon(),
-                            cat.getColor(),
-                            Math.round(spent * 100.0) / 100.0,
-                            budgetLimit,
-                            percentage
-                    );
+        return categoryTotals.entrySet().stream()
+                .map(entry -> {
+                    double percentage = entry.getValue()
+                            .divide(totalExpenses, 4, RoundingMode.HALF_UP)
+                            .doubleValue() * 100;
+
+                    return CategoryBreakdown.builder()
+                            .category(entry.getKey())
+                            .amount(entry.getValue())
+                            .percentage(Math.round(percentage * 100.0) / 100.0)
+                            .color(categoryColors.get(entry.getKey()))
+                            .build();
                 })
-                .sorted((a, b) -> Double.compare(b.totalSpent(), a.totalSpent()))
+                .sorted(Comparator.comparing(CategoryBreakdown::getAmount).reversed())
                 .collect(Collectors.toList());
-    }
-
-    public List<Map<String, Object>> getMonthlyTrend() {
-        List<Object[]> monthlyData = expenseRepository.getMonthlyTotals();
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (Object[] row : monthlyData) {
-            Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("month", row[0] != null ? row[0].toString() : "Unknown");
-            entry.put("total", row[1] != null ? ((Number) row[1]).doubleValue() : 0.0);
-            result.add(entry);
-        }
-
-        return result;
-    }
-
-    public List<Map<String, Object>> getDailySpending() {
-        YearMonth currentMonth = YearMonth.now();
-        String start = currentMonth.atDay(1).toString();
-        String end = currentMonth.atEndOfMonth().toString();
-
-        List<Object[]> dailyData = expenseRepository.getDailyTotals(start, end);
-        List<Map<String, Object>> result = new ArrayList<>();
-
-        for (Object[] row : dailyData) {
-            Map<String, Object> entry = new LinkedHashMap<>();
-            entry.put("date", row[0] != null ? row[0].toString() : "Unknown");
-            entry.put("total", row[1] != null ? ((Number) row[1]).doubleValue() : 0.0);
-            result.add(entry);
-        }
-
-        return result;
     }
 }

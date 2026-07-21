@@ -1,12 +1,15 @@
 package com.expensetracker.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_profiles")
+@Table(name = "profiles")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,31 +17,32 @@ import java.time.LocalDateTime;
 public class UserProfile {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id; // Matches User.id
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    @MapsId
+    @JoinColumn(name = "id")
     private User user;
 
-    @Column(length = 20)
     private String phone;
+    private String currency;
+    private String timezone;
 
-    @Column(length = 30)
-    @Builder.Default
-    private String currency = "USD";
-
-    @Column(length = 60)
-    @Builder.Default
-    private String timezone = "America/New_York";
-
-    @Column(length = 500)
+    @Column(name = "avatar_url")
     private String avatarUrl;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();

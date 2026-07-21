@@ -1,28 +1,33 @@
 package com.expensetracker.controller;
 
 import com.expensetracker.model.Category;
+import com.expensetracker.security.UserPrincipal;
+import com.expensetracker.service.CategoryService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/api/v1/categories")
+@RequiredArgsConstructor
 public class CategoryController {
 
+    private final CategoryService categoryService;
+
     @GetMapping
-    public ResponseEntity<List<Map<String, String>>> getAllCategories() {
-        List<Map<String, String>> categories = new ArrayList<>();
-        for (Category category : Category.values()) {
-            Map<String, String> entry = new LinkedHashMap<>();
-            entry.put("name", category.name());
-            entry.put("displayName", category.getDisplayName());
-            entry.put("icon", category.getIcon());
-            entry.put("color", category.getColor());
-            categories.add(entry);
-        }
-        return ResponseEntity.ok(categories);
+    public ResponseEntity<List<Category>> getAllCategories(@AuthenticationPrincipal UserPrincipal currentUser) {
+        String userId = currentUser != null ? currentUser.getId() : "default";
+        return ResponseEntity.ok(categoryService.getAllCategories(userId));
+    }
+
+    @PostMapping
+    public ResponseEntity<Category> createCategory(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @RequestBody Category category
+    ) {
+        return ResponseEntity.ok(categoryService.createCategory(currentUser.getId(), category));
     }
 }

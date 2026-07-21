@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:sqlite:expense_tracker.db}
+    url: jdbc:sqlite:expense_tracker.db
     driver-class-name: org.sqlite.JDBC
     hikari:
       maximum-pool-size: 1
@@ -13,19 +13,16 @@ spring:
       hibernate:
         format_sql: true
 
-server:
-  port: ${PORT:8080}
-
 app:
   jwt:
-    secret: ${JWT_SECRET:dGhpcyBpcyBhIHZlcnkgbG9uZyBhbmQgc2VjdXJlIHNlY3JldCBrZXkgZm9yIEpXVCBzaWduaW5n}
-    expiration-ms: ${JWT_EXPIRATION_MS:3600000}
-    refresh-expiration-ms: ${JWT_REFRESH_EXPIRATION_MS:604800000}
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    expiration-ms: 86400000 # 24 hours
+    refresh-expiration-ms: 604800000 # 7 days
+  cors:
+    allowed-origins: "http://localhost:5173,http://localhost:3000,http://localhost:80,http://localhost"
   gemini:
-    api-key: ${GEMINI_API_KEY:}
+    api-key: ${GEMINI_API_KEY:demo-key}
+    api-url: https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent
 
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-  api-docs:
-    path: /v3/api-docs
+server:
+  port: 8080

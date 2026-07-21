@@ -1,12 +1,15 @@
 package com.expensetracker.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "user_settings")
+@Table(name = "settings")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,38 +17,35 @@ import java.time.LocalDateTime;
 public class UserSettings {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false)
     @Builder.Default
     private String theme = "dark";
 
-    @Column(nullable = false)
-    @Builder.Default
-    private String currency = "USD";
-
-    @Column(nullable = false)
     @Builder.Default
     private String language = "en";
 
-    @Column(name = "email_notifications", nullable = false)
+    @Builder.Default
+    private String currency = "INR";
+
+    @Column(name = "email_notifications")
     @Builder.Default
     private Boolean emailNotifications = true;
 
-    @Column(name = "push_notifications", nullable = false)
+    @Column(name = "push_notifications")
     @Builder.Default
     private Boolean pushNotifications = true;
 
-    @Column(name = "budget_alerts", nullable = false)
+    @Column(name = "budget_alerts")
     @Builder.Default
     private Boolean budgetAlerts = true;
 
-    @Column(name = "ai_enabled", nullable = false)
+    @Column(name = "ai_enabled")
     @Builder.Default
     private Boolean aiEnabled = true;
 
@@ -54,7 +54,7 @@ public class UserSettings {
 
     @PrePersist
     @PreUpdate
-    protected void onUpdate() {
+    protected void onSave() {
         this.updatedAt = LocalDateTime.now();
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, UserPlus, AlertCircle, CheckCircle2, Loader2, ShieldAlert } from 'lucide-react';
+import { User, Mail, Lock, UserPlus, AlertCircle, Loader2, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export const Register: React.FC = () => {
@@ -13,7 +13,6 @@ export const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Password Strength Calculator (0 to 4)
@@ -58,9 +57,7 @@ export const Register: React.FC = () => {
     try {
       setIsSubmitting(true);
       const res = await signUpWithEmail(email, password, fullName);
-      if (res?.user && !res.session) {
-        setSuccessMsg('Registration successful! Please check your email to verify your account.');
-      } else {
+      if (res?.user) {
         navigate('/dashboard');
       }
     } catch (err: any) {
@@ -82,14 +79,6 @@ export const Register: React.FC = () => {
           Start tracking expenses and automating budget goals with AI.
         </p>
       </div>
-
-      {/* Success Alert */}
-      {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs flex items-center space-x-3">
-          <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-          <span>{successMsg}</span>
-        </div>
-      )}
 
       {/* Error Alert */}
       {error && (

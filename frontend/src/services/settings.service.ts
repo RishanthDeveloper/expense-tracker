@@ -1,46 +1,48 @@
-import { supabase } from '../supabase/client';
+import { apiClient } from '../api/client';
 import { UserSettings, UpdateSettingsDTO } from '../types/settings';
 
 export const SettingsService = {
   async getSettings(): Promise<UserSettings | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return null;
-
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-
-    if (error) {
-      console.warn('Supabase fetch settings warning:', error.message);
+    try {
+      const data = await apiClient<any>('/users/settings');
       return {
-        user_id: user.id,
-        theme: 'dark',
-        language: 'en',
-        currency: 'USD',
-        email_notifications: true,
-        push_notifications: true,
-        budget_alerts: true,
-        ai_enabled: true,
+        user_id: data.userId || '',
+        theme: data.theme || 'dark',
+        language: data.language || 'en',
+        currency: data.currency || 'INR',
+        email_notifications: data.emailNotifications ?? true,
+        push_notifications: data.pushNotifications ?? true,
+        budget_alerts: data.budgetAlerts ?? true,
+        ai_enabled: data.aiEnabled ?? true,
       };
+    } catch {
+      return null;
     }
-
-    return data as UserSettings;
   },
 
   async updateSettings(dto: UpdateSettingsDTO): Promise<UserSettings> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
+    const data = await apiClient<any>('/users/settings', {
+      method: 'PUT',
+      body: JSON.stringify({
+        theme: dto.theme,
+        language: dto.language,
+        currency: dto.currency,
+        emailNotifications: dto.email_notifications,
+        pushNotifications: dto.push_notifications,
+        budgetAlerts: dto.budget_alerts,
+        aiEnabled: dto.ai_enabled,
+      }),
+    });
 
-    const { data, error } = await supabase
-      .from('settings')
-      .update(dto)
-      .eq('user_id', user.id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data as UserSettings;
+    return {
+      user_id: data.userId || '',
+      theme: data.theme || 'dark',
+      language: data.language || 'en',
+      currency: data.currency || 'INR',
+      email_notifications: data.emailNotifications ?? true,
+      push_notifications: data.pushNotifications ?? true,
+      budget_alerts: data.budgetAlerts ?? true,
+      ai_enabled: data.aiEnabled ?? true,
+    };
   },
 };

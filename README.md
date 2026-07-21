@@ -1,105 +1,128 @@
-# 🚀 Expense Tracker AI - Intelligent Financial Management App
+# 🚀 Expense Tracker AI - Enterprise Full-Stack Application
 
+![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.2.2-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
+![Spring Security](https://img.shields.io/badge/Spring_Security-JWT-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-5.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![Google Gemini](https://img.shields.io/badge/Google_Gemini-1.5_Pro-8E75B2?style=for-the-badge&logo=google&logoColor=white)
-![Vercel](https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white)
+![SQLite / JPA](https://img.shields.io/badge/SQLite-JPA_Hibernate-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Google Gemini](https://img.shields.io/badge/Google_Gemini-1.5_Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
-A full-stack, enterprise-grade financial management web application built with **React 18**, **TypeScript**, **Tailwind CSS**, **Recharts**, **Supabase Cloud Database**, and **Google Gemini 1.5 Pro AI**.
+A production-grade, full-stack financial intelligence application built with **Java 17 / Spring Boot 3.2** as the single source of truth REST API backend, paired with a modern **React 18 + TypeScript + Vite + Tailwind CSS** frontend.
 
 ---
 
-## 🌐 Live Application Demo
+## 🏛️ System Architecture
 
-👉 **[https://expense-tracker-wh4b.vercel.app/](https://expense-tracker-wh4b.vercel.app/)**
-
-- **Direct Login**: [https://expense-tracker-wh4b.vercel.app/#/login](https://expense-tracker-wh4b.vercel.app/#/login)
-- **Direct Register**: [https://expense-tracker-wh4b.vercel.app/#/register](https://expense-tracker-wh4b.vercel.app/#/register)
-- **GitHub Repository**: [https://github.com/RishanthDeveloper/expense-tracker](https://github.com/RishanthDeveloper/expense-tracker)
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    React 18 + TypeScript                    │
+│                 Tailwind Glassmorphic UI                    │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ HTTP / REST (JWT Auth)
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Java 17 / Spring Boot 3.2                 │
+│  ┌──────────────────┬──────────────────┬─────────────────┐  │
+│  │ Spring Security  │ REST Controllers │ Service Layer   │  │
+│  │ BCrypt / JWT Auth│ JWT Validation   │ Analytics & AI  │  │
+│  └──────────────────┴──────────────────┴─────────────────┘  │
+└──────────────┬──────────────────────────────┬───────────────┘
+               │ JPA / Hibernate              │ RestClient / Http
+               ▼                              ▼
+┌──────────────────────────────┐┌─────────────────────────────┐
+│   SQLite / PostgreSQL DB     ││   Google Gemini 1.5 API    │
+│  (Users, Expenses, Budgets)  ││ (AI Financial Intelligence) │
+└──────────────────────────────┘└─────────────────────────────┘
+```
 
 ---
 
 ## ✨ Key Features
 
-- **🇮🇳 Indian Rupee (₹ INR) Formatting**: All figures across KPI cards, graphs, tables, CSV exports, and printable PDF statements are natively formatted in Indian Rupees using the `en-IN` numbering system.
-- **📊 Real-time Dashboard Analytics**: Interactive Recharts Area, Donut, Bar, and Line charts mapping monthly income velocity vs expense trends and net savings.
-- **🤖 Gemini 1.5 Pro AI Financial Advisor**: Server-side proxy via Supabase Deno Edge Functions generating personalized spending analyses, budget warnings, and interactive AI chat.
-- **🔒 Enterprise Security & Isolation**: Multi-tenant database protected by PostgreSQL Row Level Security (RLS) policies enforcing complete isolation across 8 core tables (`profiles`, `categories`, `income`, `expenses`, `budgets`, `notifications`, `settings`, `ai_history`).
-- **🎯 Category Budget Tracking**: Real-time progress bars with conditional status indicators (`Good`, `Warning`, `Exceeded`).
-- **📄 Export Utilities**: Downloadable CSV data exports and printable PDF financial statements.
-- **🎨 Glassmorphic UI**: Dynamic dark and light theme toggle with modern glassmorphic panels and micro-animations.
+- **🛡️ Spring Security & JWT Authentication**: Complete stateless user registration, login, refresh token generation, BCrypt password hashing, and user profile management.
+- **💼 Spring Boot Single Source of Truth**: End-to-end REST API driving all financial transaction CRUD operations, budget progress calculation, and analytics aggregation.
+- **🤖 Server-Side Gemini AI Proxy**: Secure proxying of Google Gemini 1.5 Pro/Flash API calls from Java backend with automated audit logging to `ai_history`.
+- **🇮🇳 Indian Rupee (₹ INR) Formatting**: Natively formatted currency numbers and statistics across KPI cards, Recharts, CSV exports, and printable PDF statements.
+- **📊 Real-time Analytics Engine**: Dynamic Recharts Area, Donut, Bar, and Line charts calculating category velocity, savings rate, and monthly balance.
+- **🐳 Docker & Docker Compose Support**: Production-ready multi-stage Dockerfiles for both backend and frontend, orchestrated with `docker-compose`.
 
 ---
 
-## 🛠️ Tech Stack
+## 🔌 REST API Endpoints
 
-- **Frontend**: React 18, TypeScript, Vite, React Router DOM (`HashRouter`), Tailwind CSS
-- **State & Data Fetching**: React Query (`@tanstack/react-query`), Zustand
-- **Backend & Database**: Supabase PostgreSQL + Row Level Security (RLS)
-- **Serverless AI**: Supabase Deno Edge Functions + Google Gemini 1.5 Pro API
-- **Charts & Icons**: Recharts + Lucide Icons
-- **Deployment**: Vercel + GitHub Actions
+### 🔐 Authentication (`/api/v1/auth`)
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Register a new user account | ❌ No |
+| `POST` | `/api/v1/auth/login` | Authenticate & return JWT tokens | ❌ No |
+| `POST` | `/api/v1/auth/refresh` | Refresh access token using refresh token | ❌ No |
+| `GET` | `/api/v1/auth/me` | Get current authenticated user details | 🔒 Yes |
+| `POST` | `/api/v1/auth/logout` | Revoke session refresh tokens | 🔒 Yes |
+
+### 👤 User Management (`/api/v1/users`)
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/users/profile` | Get user profile information | 🔒 Yes |
+| `PUT` | `/api/v1/users/profile` | Update profile (name, currency, avatar) | 🔒 Yes |
+| `GET` | `/api/v1/users/settings` | Get user application settings | 🔒 Yes |
+| `PUT` | `/api/v1/users/settings` | Update settings (theme, alerts) | 🔒 Yes |
+| `POST` | `/api/v1/users/password` | Change user account password | 🔒 Yes |
+
+### 💵 Financial Operations (`/api/v1/...`)
+| Method | Endpoint | Description | Auth Required |
+| :--- | :--- | :--- | :--- |
+| `GET/POST` | `/api/v1/income` | List or create income transactions | 🔒 Yes |
+| `PUT/DELETE` | `/api/v1/income/{id}` | Update or delete income record | 🔒 Yes |
+| `GET/POST` | `/api/v1/expenses` | List or create expense transactions | 🔒 Yes |
+| `PUT/DELETE` | `/api/v1/expenses/{id}` | Update or delete expense record | 🔒 Yes |
+| `GET/POST` | `/api/v1/budgets` | List or update category budgets | 🔒 Yes |
+| `GET` | `/api/v1/categories` | Get category taxonomy | 🔒 Yes |
+| `GET` | `/api/v1/analytics/dashboard` | Fetch aggregated dashboard metrics | 🔒 Yes |
+| `GET` | `/api/v1/analytics/category-breakdown` | Fetch spending category percentages | 🔒 Yes |
+| `POST` | `/api/v1/ai/analyze` | Request Gemini AI financial audit | 🔒 Yes |
+| `GET` | `/api/v1/ai/history` | Fetch previous AI prompt history | 🔒 Yes |
 
 ---
 
-## 🏗️ Database Schema
+## 🚀 Getting Started
 
+### Option 1: Run with Docker Compose (Recommended)
+
+```bash
+# Clone repository
+git clone https://github.com/RishanthDeveloper/expense-tracker.git
+cd expense-tracker
+
+# Build and start services
+docker-compose up --build
 ```
-auth.users (Supabase Auth)
-  └── profiles (id, full_name, avatar_url, currency, timezone)
-      ├── income (id, amount, description, transaction_date)
-      ├── expenses (id, amount, description, payment_method, transaction_date)
-      ├── budgets (id, category_id, month, year, amount)
-      ├── categories (id, name, type, icon, color)
-      ├── ai_history (id, prompt, response, tokens_used)
-      └── settings (user_id, theme, email_notifications, push_notifications, budget_alerts, ai_enabled)
-```
+- **Frontend App**: Open [http://localhost](http://localhost)
+- **Backend API**: Accessible at [http://localhost:8080](http://localhost:8080)
+- **Swagger Documentation**: Open [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 
 ---
 
-## 🚀 Local Setup & Installation
+### Option 2: Run Locally (Maven + Vite)
 
-### Prerequisites
+#### Backend Setup:
+```bash
+cd backend
+mvn clean spring-boot:run
+```
 
-- **Node.js**: `>=20.11.0`
-- **npm**: `>=10.2.0`
-
-### Step-by-Step Instructions
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/RishanthDeveloper/expense-tracker.git
-   cd expense-tracker/frontend
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables**:
-   Create a `.env` file inside `frontend/`:
-   ```env
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-   ```
-
-4. **Start local development server**:
-   ```bash
-   npm run dev
-   ```
-   Open **[http://localhost:5173](http://localhost:5173)** in your browser.
-
-5. **Build for Production**:
-   ```bash
-   npm run build
-   ```
+#### Frontend Setup:
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
 ---
 
 ## 📜 License
 
-MIT © [RishanthDeveloper](https://github.com/RishanthDeveloper) & Expense Tracker AI Team
+MIT © [RishanthDeveloper](https://github.com/RishanthDeveloper)

@@ -5,90 +5,107 @@ import com.expensetracker.dto.ExpenseResponse;
 import com.expensetracker.exception.ResourceNotFoundException;
 import com.expensetracker.model.Category;
 import com.expensetracker.model.Expense;
+import com.expensetracker.model.User;
+import com.expensetracker.repository.CategoryRepository;
 import com.expensetracker.repository.ExpenseRepository;
+import com.expensetracker.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ExpenseService {
 
     private final ExpenseRepository expenseRepository;
+    private final CategoryRepository categoryRepository;
+    private final UserRepository userRepository;
 
-    public ExpenseService(ExpenseRepository expenseRepository) {
-        this.expenseRepository = expenseRepository;
-    }
-
-    public List<ExpenseResponse> getAllExpenses(String category, String from, String to, String search) {
-        List<Expense> expenses;
-
-        Category cat = (category != null && !category.isBlank()) ? Category.fromString(category) : null;
-        LocalDate fromDate = (from != null && !from.isBlank()) ? LocalDate.parse(from) : null;
-        LocalDate toDate = (to != null && !to.isBlank()) ? LocalDate.parse(to) : null;
-
-        if (cat != null && fromDate != null && toDate != null) {
-            expenses = expenseRepository.findByCategoryAndDateBetween(cat, fromDate, toDate);
-        } else if (cat != null) {
-            expenses = expenseRepository.findByCategory(cat);
-        } else if (fromDate != null && toDate != null) {
-            expenses = expenseRepository.findByDateBetween(fromDate, toDate);
-        } else if (search != null && !search.isBlank()) {
-            expenses = expenseRepository.findByTitleContainingIgnoreCase(search);
-        } else {
-            expenses = expenseRepository.findAll();
-        }
-
-        return expenses.stream()
-                .map(ExpenseResponse::from)
+    @Transactional(readOnly = true)
+    public List<ExpenseResponse> getAllExpenses(String userId) {
+        return expenseRepository.findByUserIdOrderByTransactionDateDesc(userId)
+                .stream()
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    public ExpenseResponse getExpenseById(Long id) {
-        Expense expense = expenseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + id));
-        return ExpenseResponse.from(expense);
-    }
+    @Transactional
+    public ExpenseResponse createExpense(String userId, ExpenseRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    public ExpenseResponse createExpense(ExpenseRequest request) {
+        Category category = null;
+        if (request.getCategoryId() != null) {
+            category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+        } else if (request.getCategoryName() != null) {
+            category = categoryRepository.findByUserIdAndNameAndType(userId, request.getCategoryName(), "expense")
+                    .orElseGet(() -> categoryRepository.save(Category.builder().user(user).name(request.getCategoryName()).type("expense").build()));
+        }
+
         Expense expense = Expense.builder()
-                .title(request.title())
-                .amount(request.amount())
-                .category(Category.fromString(request.category()))
-                .date(LocalDate.parse(request.date()))
-                .notes(request.notes())
+                .user(user)
+                .category(category)
+                .amount(request.getAmount())
+                .description(request.getDescription())
+                .paymentMethod(request.getPaymentMethod())
+                .receiptUrl(request.getReceiptUrl())
+                .transactionDate(request.getTransactionDate())
                 .build();
 
         Expense saved = expenseRepository.save(expense);
-        return ExpenseResponse.from(saved);
+        return mapToResponse(saved);
     }
 
-    public ExpenseResponse updateExpense(Long id, ExpenseRequest request) {
+    @Transactional
+    public ExpenseResponse updateExpense(String userId, String id, ExpenseRequest request) {
         Expense expense = expenseRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + id));
 
-        expense.setTitle(request.title());
-        expense.setAmount(request.amount());
-        expense.setCategory(Category.fromString(request.category()));
-        expense.setDate(LocalDate.parse(request.date()));
-        expense.setNotes(request.notes());
-
-        Expense updated = expenseRepository.save(expense);
-        return ExpenseResponse.from(updated);
-    }
-
-    public void deleteExpense(Long id) {
-        if (!expenseRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Expense not found with id: " + id);
+        if (!expense.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Unauthorized access to resource");
         }
-        expenseRepository.deleteById(id);
+
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId()).orElse(null);
+            expense.setCategory(category);
+        }
+
+        expense.setAmount(request.getAmount());
+        expense.setDescription(request.getDescription());
+        if (request.getPaymentMethod() != null) expense.setPaymentMethod(request.getPaymentMethod());
+        if (request.getReceiptUrl() != null) expense.setReceiptUrl(request.getReceiptUrl());
+        expense.setTransactionDate(request.getTransactionDate());
+
+        Expense saved = expenseRepository.save(expense);
+        return mapToResponse(saved);
     }
 
-    public List<ExpenseResponse> getRecentExpenses() {
-        return expenseRepository.findTop5ByOrderByDateDescIdDesc()
-                .stream()
-                .map(ExpenseResponse::from)
-                .collect(Collectors.toList());
+    @Transactional
+    public void deleteExpense(String userId, String id) {
+        Expense expense = expenseRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + id));
+
+        if (!expense.getUser().getId().equals(userId)) {
+            throw new IllegalArgumentException("Unauthorized access to resource");
+        }
+
+        expenseRepository.delete(expense);
+    }
+
+    private ExpenseResponse mapToResponse(Expense expense) {
+        return ExpenseResponse.builder()
+                .id(expense.getId())
+                .amount(expense.getAmount())
+                .categoryId(expense.getCategory() != null ? expense.getCategory().getId() : null)
+                .categoryName(expense.getCategory() != null ? expense.getCategory().getName() : "General Expense")
+                .description(expense.getDescription())
+                .paymentMethod(expense.getPaymentMethod())
+                .receiptUrl(expense.getReceiptUrl())
+                .transactionDate(expense.getTransactionDate())
+                .createdAt(expense.getCreatedAt())
+                .build();
     }
 }

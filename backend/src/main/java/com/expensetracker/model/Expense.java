@@ -1,15 +1,12 @@
 package com.expensetracker.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -22,37 +19,39 @@ import java.time.LocalDateTime;
 public class Expense {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    @NotBlank(message = "Title is required")
-    @Size(max = 100, message = "Title must be at most 100 characters")
-    @Column(nullable = false, length = 100)
-    private String title;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @NotNull(message = "Amount is required")
-    @Positive(message = "Amount must be positive")
-    @Column(nullable = false)
-    private Double amount;
-
-    @NotNull(message = "Category is required")
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
     private Category category;
 
-    @NotNull(message = "Date is required")
     @Column(nullable = false)
-    private LocalDate date;
+    private BigDecimal amount;
 
-    @Size(max = 500, message = "Notes must be at most 500 characters")
-    @Column(length = 500)
-    private String notes;
+    private String description;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "payment_method")
+    private String paymentMethod;
+
+    @Column(name = "receipt_url")
+    private String receiptUrl;
+
+    @Column(name = "transaction_date", nullable = false)
+    private LocalDate transactionDate;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.transactionDate == null) {
+            this.transactionDate = LocalDate.now();
+        }
     }
 }

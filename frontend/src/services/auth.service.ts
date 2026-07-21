@@ -1,5 +1,4 @@
-import { supabase } from '../supabase/client';
-import { Session, User } from '@supabase/supabase-js';
+import { apiClient, TOKEN_KEY, REFRESH_TOKEN_KEY } from '../api/client';
 
 export interface SignUpCredentials {
   email: string;
@@ -12,143 +11,91 @@ export interface SignInCredentials {
   password: string;
 }
 
-const DEMO_STORAGE_KEY = 'expense_tracker_demo_user';
+export interface AuthUser {
+  id: string;
+  email: string;
+  fullName: string;
+  avatarUrl?: string;
+  role?: string;
+}
+
+export interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  user: AuthUser;
+}
 
 export const AuthService = {
   /**
-   * Register a new user account with Supabase Auth (or demo fallback)
+   * Register a new user account via Spring Boot REST API
    */
-  async signUp({ email, password, fullName }: SignUpCredentials) {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-        },
-      });
+  async signUp(credentials: SignUpCredentials): Promise<AuthResponse> {
+    const data = await apiClient<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
 
-      if (!error && data.user) {
-        return data;
-      }
-    } catch {
-      // Supabase credentials not configured or offline -> Demo Fallback
+    if (data.accessToken) {
+      localStorage.setItem(TOKEN_KEY, data.accessToken);
+    }
+    if (data.refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
     }
 
-    // Demo fallback session
-    const demoUser: any = {
-      id: 'demo-user-123',
-      email: email || 'demo@expensetracker.ai',
-      user_metadata: { full_name: fullName || 'Demo Master' },
-    };
-
-    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(demoUser));
-    return { user: demoUser, session: { user: demoUser } as any };
+    return data;
   },
 
   /**
-   * Log in an existing user with Email & Password (or demo fallback)
+   * Log in an existing user with Email & Password via Spring Boot REST API
    */
-  async signIn({ email, password }: SignInCredentials) {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+  async signIn(credentials: SignInCredentials): Promise<AuthResponse> {
+    const data = await apiClient<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
 
-      if (!error && data.user) {
-        return data;
-      }
-    } catch {
-      // Supabase credentials not configured or offline -> Demo Fallback
+    if (data.accessToken) {
+      localStorage.setItem(TOKEN_KEY, data.accessToken);
+    }
+    if (data.refreshToken) {
+      localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
     }
 
-    // Demo fallback session
-    const demoUser: any = {
-      id: 'demo-user-123',
-      email: email || 'demo@expensetracker.ai',
-      user_metadata: { full_name: email?.split('@')[0] || 'Demo Master' },
-    };
-
-    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(demoUser));
-    return { user: demoUser, session: { user: demoUser } as any };
+    return data;
   },
 
   /**
-   * Initiate Google OAuth sign-in flow
+   * Fetch current authenticated user profile
    */
-  async signInWithGoogle() {
+  async getMe(): Promise<AuthUser | null> {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return null;
+
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-        },
-      });
-
-      if (!error) return data;
+      const profile = await apiClient<any>('/users/profile');
+      return {
+        id: profile.id,
+        email: profile.email,
+        fullName: profile.fullName,
+        avatarUrl: profile.avatarUrl,
+      };
     } catch {
-      // Fallback
+      return null;
     }
-
-    const demoUser: any = {
-      id: 'demo-user-123',
-      email: 'alex.google@example.com',
-      user_metadata: { full_name: 'Alex Vance (Google)' },
-    };
-
-    localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(demoUser));
-    return { user: demoUser, session: { user: demoUser } as any };
   },
 
   /**
    * Log out current session
    */
-  async signOut() {
+  async signOut(): Promise<void> {
     try {
-      await supabase.auth.signOut();
+      await apiClient('/auth/logout', { method: 'POST' });
     } catch {
       // Ignore
+    } finally {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
     }
-    localStorage.removeItem(DEMO_STORAGE_KEY);
-  },
-
-  /**
-   * Fetch current active session
-   */
-  async getSession(): Promise<Session | null> {
-    try {
-      const { data, error } = await supabase.auth.getSession();
-      if (!error && data.session) return data.session;
-    } catch {
-      // Ignore
-    }
-
-    const demo = localStorage.getItem(DEMO_STORAGE_KEY);
-    if (demo) {
-      const user = JSON.parse(demo);
-      return { user } as any;
-    }
-
-    return null;
-  },
-
-  /**
-   * Fetch current authenticated user
-   */
-  async getCurrentUser(): Promise<User | null> {
-    try {
-      const { data, error } = await supabase.auth.getUser();
-      if (!error && data.user) return data.user;
-    } catch {
-      // Ignore
-    }
-
-    const demo = localStorage.getItem(DEMO_STORAGE_KEY);
-    if (demo) {
-      return JSON.parse(demo) as User;
-    }
-
-    return null;
   },
 };

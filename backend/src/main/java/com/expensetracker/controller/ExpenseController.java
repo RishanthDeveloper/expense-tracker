@@ -2,58 +2,51 @@ package com.expensetracker.controller;
 
 import com.expensetracker.dto.ExpenseRequest;
 import com.expensetracker.dto.ExpenseResponse;
+import com.expensetracker.security.UserPrincipal;
 import com.expensetracker.service.ExpenseService;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/expenses")
+@RequestMapping("/api/v1/expenses")
+@RequiredArgsConstructor
 public class ExpenseController {
 
     private final ExpenseService expenseService;
 
-    public ExpenseController(ExpenseService expenseService) {
-        this.expenseService = expenseService;
-    }
-
     @GetMapping
-    public ResponseEntity<List<ExpenseResponse>> getAllExpenses(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String from,
-            @RequestParam(required = false) String to,
-            @RequestParam(required = false) String search) {
-        return ResponseEntity.ok(expenseService.getAllExpenses(category, from, to, search));
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ExpenseResponse> getExpenseById(@PathVariable Long id) {
-        return ResponseEntity.ok(expenseService.getExpenseById(id));
+    public ResponseEntity<List<ExpenseResponse>> getAllExpenses(@AuthenticationPrincipal UserPrincipal currentUser) {
+        return ResponseEntity.ok(expenseService.getAllExpenses(currentUser.getId()));
     }
 
     @PostMapping
-    public ResponseEntity<ExpenseResponse> createExpense(@Valid @RequestBody ExpenseRequest request) {
-        ExpenseResponse created = expenseService.createExpense(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<ExpenseResponse> createExpense(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @Valid @RequestBody ExpenseRequest request
+    ) {
+        return ResponseEntity.ok(expenseService.createExpense(currentUser.getId(), request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ExpenseResponse> updateExpense(@PathVariable Long id,
-                                                          @Valid @RequestBody ExpenseRequest request) {
-        return ResponseEntity.ok(expenseService.updateExpense(id, request));
+    public ResponseEntity<ExpenseResponse> updateExpense(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable String id,
+            @Valid @RequestBody ExpenseRequest request
+    ) {
+        return ResponseEntity.ok(expenseService.updateExpense(currentUser.getId(), id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteExpense(@PathVariable Long id) {
-        expenseService.deleteExpense(id);
+    public ResponseEntity<Void> deleteExpense(
+            @AuthenticationPrincipal UserPrincipal currentUser,
+            @PathVariable String id
+    ) {
+        expenseService.deleteExpense(currentUser.getId(), id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/recent")
-    public ResponseEntity<List<ExpenseResponse>> getRecentExpenses() {
-        return ResponseEntity.ok(expenseService.getRecentExpenses());
     }
 }

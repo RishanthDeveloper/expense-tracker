@@ -27,7 +27,7 @@ export const ProfilePage: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'John Doe';
+  const userName = profile?.full_name || user?.fullName || user?.email?.split('@')[0] || 'User';
   const userEmail = user?.email || 'user@example.com';
   const userInitials = userName.substring(0, 2).toUpperCase();
 

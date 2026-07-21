@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { signInWithEmail, signInWithGoogle } = useAuth();
+  const { signInWithEmail } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -36,23 +36,22 @@ export const Login: React.FC = () => {
   const handleDemoLogin = async () => {
     try {
       setIsSubmitting(true);
-      await signInWithEmail('demo@expensetracker.ai', 'demopassword123');
+      setError(null);
+      try {
+        await signInWithEmail('demo@expensetracker.ai', 'demopassword123');
+      } catch {
+        await signInWithEmail('demo@expensetracker.ai', 'demopassword123');
+      }
       navigate('/dashboard');
-    } catch {
-      navigate('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Unable to connect to Spring Boot backend server.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
-    try {
-      setError(null);
-      await signInWithGoogle();
-      navigate('/dashboard');
-    } catch {
-      await handleDemoLogin();
-    }
+    setError('Google OAuth is configured via Spring Boot Security backend.');
   };
 
   return (

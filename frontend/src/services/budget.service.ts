@@ -1,68 +1,51 @@
-import { supabase } from '../supabase/client';
+import { apiClient } from '../api/client';
 import { Budget, CreateBudgetDTO } from '../types/budget';
 
 export const BudgetService = {
   async getBudgets(): Promise<Budget[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return [];
-
-    const { data, error } = await supabase
-      .from('budgets')
-      .select('*, categories(name)')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.warn('Supabase fetch budgets error:', error.message);
-      return [];
-    }
-
-    return (data || []).map((item: any) => ({
+    const data = await apiClient<any[]>('/budgets');
+    return (data || []).map((item) => ({
       id: item.id,
-      user_id: item.user_id,
-      category_id: item.category_id,
-      category_name: item.categories?.name || item.category_name || 'General Category',
-      amount: Number(item.amount),
+      user_id: item.userId || '',
+      category_id: item.categoryId || '',
+      category_name: item.categoryName || 'General Category',
+      amount: Number(item.budgetAmount || item.amount),
+      spent: Number(item.spentAmount || 0),
+      remaining: Number(item.remainingAmount || 0),
+      percentage: Number(item.percentageUsed || 0),
       month: Number(item.month),
       year: Number(item.year),
-      created_at: item.created_at,
+      created_at: item.createdAt,
     }));
   },
 
   async addBudget(dto: CreateBudgetDTO): Promise<Budget> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
+    const data = await apiClient<any>('/budgets', {
+      method: 'POST',
+      body: JSON.stringify({
+        categoryId: dto.category_id || 'cat-general',
+        amount: dto.amount,
+        month: dto.month,
+        year: dto.year,
+      }),
+    });
 
-    const { data, error } = await supabase
-      .from('budgets')
-      .insert([
-        {
-          user_id: user.id,
-          amount: dto.amount,
-          month: dto.month,
-          year: dto.year,
-        },
-      ])
-      .select()
-      .single();
-
-    if (error) throw error;
     return {
-      ...data,
-      category_name: dto.category_name,
-    } as Budget;
+      id: data.id,
+      user_id: data.userId || '',
+      category_id: data.categoryId || '',
+      category_name: data.categoryName || dto.category_name || 'General Category',
+      amount: Number(data.budgetAmount || data.amount),
+      spent: Number(data.spentAmount || 0),
+      remaining: Number(data.remainingAmount || 0),
+      percentage: Number(data.percentageUsed || 0),
+      month: Number(data.month),
+      year: Number(data.year),
+      created_at: data.createdAt,
+    };
   },
 
   async deleteBudget(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('budgets')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
-
-    if (error) throw error;
+    await apiClient(`/budgets/${id}`, { method: 'DELETE' });
   },
 };

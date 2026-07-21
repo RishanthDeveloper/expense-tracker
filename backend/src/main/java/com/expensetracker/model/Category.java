@@ -1,51 +1,43 @@
 package com.expensetracker.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@JsonFormat(shape = JsonFormat.Shape.STRING)
-public enum Category {
+import java.time.LocalDateTime;
 
-    FOOD("Food", "fa-utensils", "#EF4444"),
-    TRANSPORT("Transport", "fa-car", "#3B82F6"),
-    SHOPPING("Shopping", "fa-cart-shopping", "#8B5CF6"),
-    ENTERTAINMENT("Entertainment", "fa-film", "#EC4899"),
-    BILLS("Bills", "fa-file-invoice-dollar", "#F59E0B"),
-    HEALTH("Health", "fa-heart-pulse", "#10B981"),
-    EDUCATION("Education", "fa-graduation-cap", "#06B6D4"),
-    OTHER("Other", "fa-ellipsis", "#6B7280");
+@Entity
+@Table(name = "categories")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Category {
 
-    private final String displayName;
-    private final String icon;
-    private final String color;
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
-    Category(String displayName, String icon, String color) {
-        this.displayName = displayName;
-        this.icon = icon;
-        this.color = color;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    public String getDisplayName() {
-        return displayName;
-    }
+    @Column(nullable = false)
+    private String name;
 
-    public String getIcon() {
-        return icon;
-    }
+    @Column(nullable = false)
+    private String type; // 'income' or 'expense'
 
-    public String getColor() {
-        return color;
-    }
+    private String icon;
+    private String color;
 
-    public static Category fromString(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        for (Category category : Category.values()) {
-            if (category.name().equalsIgnoreCase(value) || category.displayName.equalsIgnoreCase(value)) {
-                return category;
-            }
-        }
-        throw new IllegalArgumentException("Unknown category: " + value);
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 }

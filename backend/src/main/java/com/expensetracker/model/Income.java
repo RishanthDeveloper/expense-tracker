@@ -1,17 +1,17 @@
 package com.expensetracker.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "income_records")
+@Table(name = "income")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,36 +19,33 @@ import java.time.LocalDateTime;
 public class Income {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private String id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @NotBlank
-    @Size(max = 150)
-    @Column(nullable = false, length = 150)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @Column(nullable = false)
+    private BigDecimal amount;
+
     private String description;
 
-    @NotNull
-    @Positive
-    @Column(nullable = false)
-    private Double amount;
-
-    @NotBlank
-    @Column(name = "category_name", nullable = false, length = 100)
-    private String categoryName;
-
-    @NotNull
     @Column(name = "transaction_date", nullable = false)
     private LocalDate transactionDate;
 
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        if (this.transactionDate == null) {
+            this.transactionDate = LocalDate.now();
+        }
     }
 }
